@@ -23,6 +23,10 @@ on:
         description: "Build and push Docker image to Scaleway registry"
         type: boolean
         default: false
+      working-directory:
+        description: "Working directory for monorepos"
+        type: string
+        default: "."
     secrets:
       CODECOV_TOKEN:
         required: false
@@ -33,6 +37,9 @@ jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -41,12 +48,13 @@ jobs:
         uses: actions/setup-go@v6
         with:
           go-version: ${{ inputs.go-version }}
-          cache-dependency-path: go.sum
+          cache-dependency-path: ${{ inputs.working-directory }}/go.sum
 
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v9
         with:
           version: ${{ inputs.golangci-lint-version }}
+          working-directory: ${{ inputs.working-directory }}
           args: --timeout=5m
 
   buf-lint:
@@ -67,6 +75,9 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -75,7 +86,7 @@ jobs:
         uses: actions/setup-go@v6
         with:
           go-version: ${{ inputs.go-version }}
-          cache-dependency-path: go.sum
+          cache-dependency-path: ${{ inputs.working-directory }}/go.sum
 
       - name: Run tests
         run: go test -v -race -coverprofile=coverage.out ./...
@@ -84,12 +95,15 @@ jobs:
         if: inputs.codecov
         uses: codecov/codecov-action@v5
         with:
-          file: coverage.out
+          files: ${{ inputs.working-directory }}/coverage.out
         continue-on-error: true
 
   build:
     name: Build
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -98,7 +112,7 @@ jobs:
         uses: actions/setup-go@v6
         with:
           go-version: ${{ inputs.go-version }}
-          cache-dependency-path: go.sum
+          cache-dependency-path: ${{ inputs.working-directory }}/go.sum
 
       - name: Build binary
         run: CGO_ENABLED=0 go build -o /dev/null ./cmd/server
@@ -151,7 +165,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
-          context: .
+          context: ${{ inputs.working-directory }}
           platforms: linux/amd64
           push: true
           tags: |

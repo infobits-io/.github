@@ -121,7 +121,7 @@ jobs:
 
   deploy:
     name: Deploy
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     needs: [lint, test]
     runs-on: ubuntu-latest
     defaults:

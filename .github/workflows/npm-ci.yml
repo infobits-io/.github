@@ -27,6 +27,10 @@ on:
         description: "Build command"
         type: string
         default: "pnpm run build"
+      working-directory:
+        description: "Working directory for monorepos"
+        type: string
+        default: "."
       publish:
         description: "Publish to GitHub Packages on release"
         type: boolean
@@ -39,6 +43,9 @@ jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
     steps:
       - uses: actions/checkout@v6
 
@@ -47,6 +54,7 @@ jobs:
           node-version: ${{ inputs.node-version }}
           github-token: ${{ github.token }}
           fontawesome-token: ${{ secrets.FONTAWESOME_NPM_AUTH_TOKEN }}
+          working-directory: ${{ inputs.working-directory }}
 
       - name: Lint
         run: ${{ inputs.lint-command }}
@@ -62,6 +70,9 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
     steps:
       - uses: actions/checkout@v6
 
@@ -70,6 +81,7 @@ jobs:
           node-version: ${{ inputs.node-version }}
           github-token: ${{ github.token }}
           fontawesome-token: ${{ secrets.FONTAWESOME_NPM_AUTH_TOKEN }}
+          working-directory: ${{ inputs.working-directory }}
 
       - name: Test
         run: ${{ inputs.test-command }}
@@ -77,6 +89,9 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
     steps:
       - uses: actions/checkout@v6
 
@@ -85,6 +100,7 @@ jobs:
           node-version: ${{ inputs.node-version }}
           github-token: ${{ github.token }}
           fontawesome-token: ${{ secrets.FONTAWESOME_NPM_AUTH_TOKEN }}
+          working-directory: ${{ inputs.working-directory }}
 
       - name: Build
         run: ${{ inputs.build-command }}
@@ -94,6 +110,9 @@ jobs:
     if: inputs.publish && github.event_name == 'release'
     needs: [lint, test, build]
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
     permissions:
       contents: read
       packages: write
@@ -105,6 +124,7 @@ jobs:
           node-version: ${{ inputs.node-version }}
           github-token: ${{ github.token }}
           fontawesome-token: ${{ secrets.FONTAWESOME_NPM_AUTH_TOKEN }}
+          working-directory: ${{ inputs.working-directory }}
 
       - name: Set version from release tag
         env:
