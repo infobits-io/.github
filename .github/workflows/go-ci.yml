@@ -27,6 +27,10 @@ on:
         description: "Working directory for monorepos"
         type: string
         default: "."
+      image-name:
+        description: "Docker image name (default: infobits/<repo-name>)"
+        type: string
+        default: ""
     secrets:
       CODECOV_TOKEN:
         required: false
@@ -126,7 +130,7 @@ jobs:
       contents: read
     env:
       REGISTRY: rg.fr-par.scw.cloud
-      IMAGE_NAME: infobits/${{ github.event.repository.name }}
+      IMAGE_NAME: ${{ inputs.image-name != '' && inputs.image-name || format('infobits/{0}', github.event.repository.name) }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
