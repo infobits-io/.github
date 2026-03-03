@@ -53,6 +53,9 @@ jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
     defaults:
       run:
         working-directory: ${{ inputs.working-directory }}
@@ -72,6 +75,9 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
     defaults:
       run:
         working-directory: ${{ inputs.working-directory }}
@@ -107,6 +113,9 @@ jobs:
     if: github.event_name == 'pull_request'
     needs: [lint, test]
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
     defaults:
       run:
         working-directory: ${{ inputs.working-directory }}
@@ -128,6 +137,9 @@ jobs:
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     needs: [lint, test]
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
     defaults:
       run:
         working-directory: ${{ inputs.working-directory }}
