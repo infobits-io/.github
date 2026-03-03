@@ -14,7 +14,7 @@ on:
       test-command:
         description: "Test command"
         type: string
-        default: "pnpm run test:ci"
+        default: "pnpm run test"
       build-command:
         description: "Build command"
         type: string
