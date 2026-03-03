@@ -1,0 +1,98 @@
+name: Go CI
+
+on:
+  workflow_call:
+    inputs:
+      go-version:
+        description: "Go version"
+        type: string
+        default: "1.26"
+      golangci-lint-version:
+        description: "golangci-lint version"
+        type: string
+        default: "v2"
+      buf-lint:
+        description: "Run buf lint for protobuf projects"
+        type: boolean
+        default: false
+      codecov:
+        description: "Upload coverage to Codecov"
+        type: boolean
+        default: true
+    secrets:
+      CODECOV_TOKEN:
+        required: false
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: ${{ inputs.go-version }}
+          cache-dependency-path: go.sum
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v9
+        with:
+          version: ${{ inputs.golangci-lint-version }}
+          args: --timeout=5m
+
+  buf-lint:
+    name: Buf Lint
+    if: inputs.buf-lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Lint protobuf
+        uses: bufbuild/buf-action@v1
+        with:
+          lint: true
+          breaking: false
+          format: false
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: ${{ inputs.go-version }}
+          cache-dependency-path: go.sum
+
+      - name: Run tests
+        run: go test -v -race -coverprofile=coverage.out ./...
+
+      - name: Upload coverage
+        if: inputs.codecov
+        uses: codecov/codecov-action@v5
+        with:
+          file: coverage.out
+        continue-on-error: true
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: ${{ inputs.go-version }}
+          cache-dependency-path: go.sum
+
+      - name: Build binary
+        run: CGO_ENABLED=0 go build -o /dev/null ./cmd/server
