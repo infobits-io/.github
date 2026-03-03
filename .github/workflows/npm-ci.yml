@@ -1,0 +1,117 @@
+name: npm CI
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        description: "Node.js version"
+        type: string
+        default: "24.x"
+      lint-command:
+        description: "Lint command"
+        type: string
+        default: "pnpm run lint"
+      format-command:
+        description: "Format check command (empty to skip)"
+        type: string
+        default: "pnpm run format:check"
+      typecheck-command:
+        description: "Typecheck command (empty to skip)"
+        type: string
+        default: "pnpm run typecheck"
+      test-command:
+        description: "Test command"
+        type: string
+        default: "pnpm run test"
+      build-command:
+        description: "Build command"
+        type: string
+        default: "pnpm run build"
+      publish:
+        description: "Publish to GitHub Packages on release"
+        type: boolean
+        default: true
+    secrets:
+      FONTAWESOME_NPM_AUTH_TOKEN:
+        required: false
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: infobits-io/.github/actions/setup-pnpm@master
+        with:
+          node-version: ${{ inputs.node-version }}
+          github-token: ${{ github.token }}
+          fontawesome-token: ${{ secrets.FONTAWESOME_NPM_AUTH_TOKEN }}
+
+      - name: Lint
+        run: ${{ inputs.lint-command }}
+
+      - name: Format check
+        if: inputs.format-command != ''
+        run: ${{ inputs.format-command }}
+
+      - name: Typecheck
+        if: inputs.typecheck-command != ''
+        run: ${{ inputs.typecheck-command }}
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: infobits-io/.github/actions/setup-pnpm@master
+        with:
+          node-version: ${{ inputs.node-version }}
+          github-token: ${{ github.token }}
+          fontawesome-token: ${{ secrets.FONTAWESOME_NPM_AUTH_TOKEN }}
+
+      - name: Test
+        run: ${{ inputs.test-command }}
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: infobits-io/.github/actions/setup-pnpm@master
+        with:
+          node-version: ${{ inputs.node-version }}
+          github-token: ${{ github.token }}
+          fontawesome-token: ${{ secrets.FONTAWESOME_NPM_AUTH_TOKEN }}
+
+      - name: Build
+        run: ${{ inputs.build-command }}
+
+  publish:
+    name: Publish
+    if: inputs.publish && github.event_name == 'release'
+    needs: [lint, test, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: infobits-io/.github/actions/setup-pnpm@master
+        with:
+          node-version: ${{ inputs.node-version }}
+          github-token: ${{ github.token }}
+          fontawesome-token: ${{ secrets.FONTAWESOME_NPM_AUTH_TOKEN }}
+
+      - name: Set version from release tag
+        env:
+          REF_NAME: ${{ github.ref_name }}
+        run: npm version "${REF_NAME#v}" --no-git-tag-version
+
+      - name: Publish to GitHub Packages
+        run: pnpm publish --no-git-checks --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ github.token }}

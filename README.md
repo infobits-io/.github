@@ -83,6 +83,43 @@ jobs:
 
 **Docker image tagging:** When `docker: true`, images are pushed to `rg.fr-par.scw.cloud/infobits/<repo-name>` with tags matching the Flux ImagePolicy pattern `<YYYYMMDD>T<HHMMSS>-<hash8>` (e.g. `20260303T185600-a1b2c3d4`).
 
+### `.github/workflows/npm-ci.yml`
+
+Standard CI/CD pipeline for npm packages published to GitHub Packages. Runs lint, format check, typecheck, test, build, and publishes on GitHub release.
+
+**Usage (CI + publish):**
+
+```yaml
+name: CI
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  release:
+    types: [created]
+
+jobs:
+  ci:
+    uses: infobits-io/.github/.github/workflows/npm-ci.yml@master
+```
+
+On `release`, the publish job sets the package version from the release tag (strips the `v` prefix) and publishes to GitHub Packages. Lint, test, and build must pass first.
+
+**Inputs:**
+
+| Input | Default | Description |
+|---|---|---|
+| `node-version` | `24.x` | Node.js version |
+| `lint-command` | `pnpm run lint` | Lint command |
+| `format-command` | `pnpm run format:check` | Format check command (empty to skip) |
+| `typecheck-command` | `pnpm run typecheck` | Typecheck command (empty to skip) |
+| `test-command` | `pnpm run test` | Test command |
+| `build-command` | `pnpm run build` | Build command |
+| `publish` | `true` | Publish to GitHub Packages on release |
+
+**Secrets:** `FONTAWESOME_NPM_AUTH_TOKEN` (optional)
+
 ### `.github/workflows/go-ci.yml`
 
 Standard CI pipeline for Go backend services. Runs lint (golangci-lint), optional buf lint, test (with race detection + Codecov), and build.
