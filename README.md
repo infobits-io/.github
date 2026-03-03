@@ -35,7 +35,7 @@ steps:
 
 ### `.github/workflows/website-ci.yml`
 
-Standard CI pipeline for Next.js websites. Runs lint, test (with coverage), build (PR only), and deploy (push to default branch).
+Standard CI pipeline for Next.js websites. Runs lint, test (with coverage), build (PR only), deploy to Cloudflare Pages (push), and optionally builds/pushes a Docker image to Scaleway registry (push).
 
 **Usage:**
 
@@ -70,8 +70,18 @@ jobs:
 | `deploy-command` | `pnpm run deploy` | Deploy command |
 | `working-directory` | `.` | Working directory for monorepos |
 | `coverage` | `true` | Upload coverage artifacts and PR report |
+| `docker` | `false` | Build and push Docker image to Scaleway registry |
 
-**Secrets:** `FONTAWESOME_NPM_AUTH_TOKEN`, `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`
+**Secrets:**
+
+| Secret | Required | Description |
+|---|---|---|
+| `FONTAWESOME_NPM_AUTH_TOKEN` | Yes | FontAwesome Pro registry token |
+| `CLOUDFLARE_API_TOKEN` | No | Cloudflare API token for Pages deploy |
+| `CLOUDFLARE_ACCOUNT_ID` | No | Cloudflare account ID for Pages deploy |
+| `SCW_SECRET_KEY` | No | Scaleway secret key for Docker registry (required when `docker: true`) |
+
+**Docker image tagging:** When `docker: true`, images are pushed to `rg.fr-par.scw.cloud/infobits/<repo-name>` with tags matching the Flux ImagePolicy pattern `<YYYYMMDD>T<HHMMSS>-<hash8>` (e.g. `20260303T185600-a1b2c3d4`).
 
 ### `.github/workflows/go-ci.yml`
 
