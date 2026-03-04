@@ -58,6 +58,7 @@ jobs:
         uses: golangci/golangci-lint-action@v9
         with:
           version: ${{ inputs.golangci-lint-version }}
+          install-mode: goinstall
           working-directory: ${{ inputs.working-directory }}
           args: --timeout=5m
 
