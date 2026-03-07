@@ -131,6 +131,8 @@ jobs:
 
       - name: Build
         run: ${{ inputs.build-command }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
   deploy:
     name: Deploy
@@ -155,6 +157,8 @@ jobs:
 
       - name: Build
         run: ${{ inputs.build-command }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Deploy
         run: ${{ inputs.deploy-command }}
